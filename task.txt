@@ -1,0 +1,12 @@
+1. Baza de date
+2. Interfata standard 
+3. login, register, roluri
+4. creare, editare, stergere event
+5. creare cont participant, formular login
+6. mini-calendar?
+7. WebRTC live chat + video
+8. Stats, feedback
+9. Notif push
+---------------------------------------------------
+10.Dezvoltare stil site
+TO ADD
