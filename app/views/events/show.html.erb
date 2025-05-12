@@ -1,0 +1,88 @@
+<div class="event-container">
+  <div class="event-header">
+    <h1><%= @event.title %></h1>
+    <p class="event-time">
+      <i class="fa fa-calendar"></i> <%= @event.start_time.strftime('%d %B %Y, %H:%M') %> - 
+      <%= @event.end_time.strftime('%d %B %Y, %H:%M') %>
+    </p>
+  </div>
+  
+  <div class="event-description">
+    <h2>Despre eveniment</h2>
+    <p><%= @event.description %></p>
+  </div>
+  
+  <% if current_user == @event.organizer %>
+    <div class="organizer-panel">
+      <h2>Panou organizator</h2>
+      <div class="button-group">
+        <%= link_to 'Editare Eveniment', edit_event_path(@event), class: 'btn btn-primary' %>
+        <%= link_to 'Începe Transmisiune', '#', class: 'btn btn-success', 
+                    data: { controller: 'webrtc', room_id: @event.id, action: 'click->webrtc#startBroadcast' } %>
+        <%= link_to 'Lista Participanți', event_registrations_path(@event), class: 'btn btn-info' %>
+      </div>
+    </div>
+  <% else %>
+    <div class="participant-panel">
+      <% if @event.registrations.where(user: current_user).exists? %>
+        <h2>Ești înscris la acest eveniment</h2>
+        <% if @event.start_time <= Time.now && @event.end_time >= Time.now %>
+          <div data-controller="webrtc" data-webrtc-room-id="<%= @event.id %>">
+            <div class="video-container">
+              <div class="main-video">
+                <video data-webrtc-target="localVideo" muted></video>
+              </div>
+              <div class="remote-videos" data-webrtc-target="remoteVideos"></div>
+            </div>
+            
+            <div class="video-controls">
+              <button data-webrtc-target="muteButton" data-action="click->webrtc#toggleMute" class="btn btn-outline-danger">
+                Mute
+              </button>
+              <button data-webrtc-target="videoButton" data-action="click->webrtc#toggleVideo" class="btn btn-outline-danger">
+                Stop Video
+              </button>
+            </div>
+            
+            <div class="chat-container">
+              <div class="chat-messages"></div>
+              <form data-action="submit->webrtc#sendMessage">
+                <input type="text" data-webrtc-target="chatInput" placeholder="Scrie un mesaj..." class="form-control">
+                <button type="submit" class="btn btn-primary">Trimite</button>
+              </form>
+            </div>
+          </div>
+        <% elsif @event.start_time > Time.now %>
+          <div class="event-countdown">
+            <p>Evenimentul începe în:</p>
+            <div class="countdown" data-controller="countdown" data-countdown-start="<%= @event.start_time.to_i %>"></div>
+          </div>
+        <% else %>
+          <p>Acest eveniment s-a încheiat.</p>
+        <% end %>
+      <% else %>
+        <div class="registration-form">
+          <h2>Înscrie-te la acest eveniment</h2>
+          <%= form_with(model: Registration.new, local: true) do |form| %>
+            <%= form.hidden_field :event_id, value: @event.id %>
+            <%= form.submit 'Înscrie-te acum', class: 'btn btn-primary btn-lg' %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <div class="event-footer">
+    <h3>Organizator</h3>
+    <p><%= @event.organizer.email %></p>
+    
+    <h3>Participanți (<%= @event.attendees.count %>)</h3>
+    <div class="attendees-list">
+      <% @event.attendees.each do |attendee| %>
+        <div class="attendee">
+          <%= attendee.email %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
